@@ -213,7 +213,10 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         # TODO: finish this function!
-        raise NotImplementedError
+        #raise NotImplementedError
+        active_player = game.active_player
+        legal_moves = game.get_legal_moves(active_player)
+        return legal_moves
 
 
 class AlphaBetaPlayer(IsolationPlayer):
