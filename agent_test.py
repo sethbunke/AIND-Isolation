@@ -20,6 +20,27 @@ class IsolationTest(unittest.TestCase):
         self.player2 = "Player2"
         self.game = isolation.Board(self.player1, self.player2)
 
+    def getActivePlayerLegalMoves(self):
+        legal_moves = self.game.get_legal_moves(self.game.active_player)
+        return legal_moves
+    
+    def test_split(self):
+        """ Test split """        
+        legal_moves = self.getActivePlayerLegalMoves();
+        self.assertTrue(len(legal_moves) == 49)
+        print(legal_moves)
+
+        ret_score = float('-inf') if True else float('inf')
+        print(ret_score)
+    
+    # def minimax(self, game, depth):
+    #     """Test minimax implementation"""
+    #     utility = game.utility(game.active_player)
+    #     if utility == 0: #need to keep playing
+            
+            
+
+
 
 if __name__ == '__main__':
     unittest.main()
