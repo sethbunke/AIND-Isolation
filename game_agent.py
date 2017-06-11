@@ -185,6 +185,7 @@ class MinimaxPlayer(IsolationPlayer):
         legal_moves = game.get_legal_moves()
         if len(legal_moves) == 0:
             return move
+        #because move by first player is a maximizing
         score_i, move = max((self.min_value(game, p, depth-1), p) for p in legal_moves)
         return move
         #raise NotImplementedError
@@ -269,81 +270,81 @@ class MinimaxPlayer(IsolationPlayer):
     #     move = result[1]
     #     return move
 
-    def minimax_internal(self, game, depth, maximizing_player=True):
-        """Implement depth-limited minimax search algorithm as described in
-        the lectures.
+    # def minimax_internal(self, game, depth, maximizing_player=True):
+    #     """Implement depth-limited minimax search algorithm as described in
+    #     the lectures.
 
-        This should be a modified version of MINIMAX-DECISION in the AIMA text.
-        https://github.com/aimacode/aima-pseudocode/blob/master/md/Minimax-Decision.md
+    #     This should be a modified version of MINIMAX-DECISION in the AIMA text.
+    #     https://github.com/aimacode/aima-pseudocode/blob/master/md/Minimax-Decision.md
 
-        **********************************************************************
-            You MAY add additional methods to this class, or define helper
-                 functions to implement the required functionality.
-        **********************************************************************
+    #     **********************************************************************
+    #         You MAY add additional methods to this class, or define helper
+    #              functions to implement the required functionality.
+    #     **********************************************************************
 
-        Parameters
-        ----------
-        game : isolation.Board
-            An instance of the Isolation game `Board` class representing the
-            current game state
+    #     Parameters
+    #     ----------
+    #     game : isolation.Board
+    #         An instance of the Isolation game `Board` class representing the
+    #         current game state
 
-        depth : int
-            Depth is an integer representing the maximum number of plies to
-            search in the game tree before aborting
+    #     depth : int
+    #         Depth is an integer representing the maximum number of plies to
+    #         search in the game tree before aborting
 
-        Returns
-        -------
-        (int, int)
-            The board coordinates of the best move found in the current search;
-            (-1, -1) if there are no legal moves
+    #     Returns
+    #     -------
+    #     (int, int)
+    #         The board coordinates of the best move found in the current search;
+    #         (-1, -1) if there are no legal moves
 
-        Notes
-        -----
-            (1) You MUST use the `self.score()` method for board evaluation
-                to pass the project tests; you cannot call any other evaluation
-                function directly.
+    #     Notes
+    #     -----
+    #         (1) You MUST use the `self.score()` method for board evaluation
+    #             to pass the project tests; you cannot call any other evaluation
+    #             function directly.
 
-            (2) If you use any helper functions (e.g., as shown in the AIMA
-                pseudocode) then you must copy the timer check into the top of
-                each helper function or else your agent will timeout during
-                testing.
-        """
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
+    #         (2) If you use any helper functions (e.g., as shown in the AIMA
+    #             pseudocode) then you must copy the timer check into the top of
+    #             each helper function or else your agent will timeout during
+    #             testing.
+    #     """
+    #     if self.time_left() < self.TIMER_THRESHOLD:
+    #         raise SearchTimeout()
 
-        # TODO: finish this function!
-        #raise NotImplementedError
+    #     # TODO: finish this function!
+    #     #raise NotImplementedError
 
-        #active_player = game.active_player
+    #     #active_player = game.active_player
 
-        #list<(int, int)> of legal moves for player
-        #legal_moves = game.get_legal_moves(active_player)
-        #return legal_moves
+    #     #list<(int, int)> of legal moves for player
+    #     #legal_moves = game.get_legal_moves(active_player)
+    #     #return legal_moves
 
-        if depth == 0:
-            return (self.score(game, self), (-1, -1))
+    #     if depth == 0:
+    #         return (self.score(game, self), (-1, -1))
 
-        ret_score = float('-inf') if maximizing_player else float('inf')
-        ret_move = (-1, -1)
+    #     ret_score = float('-inf') if maximizing_player else float('inf')
+    #     ret_move = (-1, -1)
 
-        possible_moves = game.get_legal_moves()
+    #     possible_moves = game.get_legal_moves()
 
-        for move in possible_moves:
-            score, _move = self.minimax_internal(game.forecast_move(move), depth - 1, not maximizing_player)
+    #     for move in possible_moves:
+    #         score, _move = self.minimax_internal(game.forecast_move(move), depth - 1, not maximizing_player)
 
-            if maximizing_player:
-                if score >= ret_score:
-                    ret_score = score
-                    ret_move = move
+    #         if maximizing_player:
+    #             if score >= ret_score:
+    #                 ret_score = score
+    #                 ret_move = move
 
-            else:
-                if score <= ret_score:
-                    ret_score = score
-                    ret_move = move
+    #         else:
+    #             if score <= ret_score:
+    #                 ret_score = score
+    #                 ret_move = move
 
-            ret_move = move
+    #         ret_move = move
 
-        return ret_score, ret_move
+    #     return ret_score, ret_move
 
 #BETTER
     # def minimax(self, game, depth, maximizing_player=True):
@@ -460,8 +461,21 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        #raise NotImplementedError
+        # Initialize the best move so that this function returns something
+        # in case the search fails due to timeout
+        best_move = (-1, -1)
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+            return self.alphabeta(game, self.search_depth)
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -511,5 +525,83 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        move = (-1, -1)
+        legal_moves = game.get_legal_moves()
+        if len(legal_moves) == 0:
+            return move
+        #because move by first player is a maximizing
+        score_i, move = max((self.min_value(game, p, depth-1, alpha, beta), p) for p in legal_moves)
+        return move
+
+        # if self.time_left() < self.TIMER_THRESHOLD:
+        #     raise SearchTimeout()
+
+        # #raise NotImplementedError
+        # # Initialize the best move so that this function returns something
+        # # in case the search fails due to timeout
+        # best_move = (-1, -1)
+
+        # try:
+        #     # The try/except block will automatically catch the exception
+        #     # raised when the timer is about to expire.
+        #     return self.minimax_alpha_beta(game, self.search_depth, alpha, beta)
+
+        # except SearchTimeout:
+        #     pass  # Handle any actions required after timeout as needed
+
+        # # Return the best move from the last completed search iteration
+        # return best_move
+
+    # def minimax_alpha_beta(self, game, depth, alpha, beta):
+    #     if self.time_left() < self.TIMER_THRESHOLD:
+    #         raise SearchTimeout()
+    #     # TODO: finish this function!
+    #     move = (-1, -1)
+    #     legal_moves = game.get_legal_moves()
+    #     if len(legal_moves) == 0:
+    #         return move
+    #     #because move by first player is a maximizing
+    #     score_i, move = max((self.min_value(game, p, depth-1, alpha, beta), p) for p in legal_moves)
+    #     return move
+    #     #raise NotImplementedError
+
+    def min_value(self, game, move, depth, alpha, beta):
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        game_tmp = game.forecast_move(move)
+
+        legal_moves = game_tmp.get_legal_moves()
+        score_i = float("inf")
+
+        if depth == 0:
+            return self.score(game_tmp, self) #PA passed
+        #return self.score(game_tmp, game_tmp._player_1)
+
+        for p in legal_moves:
+            score_i = min(score_i, self.max_value(game_tmp, p, depth-1, alpha, beta))
+            if score_i <= alpha:
+                return score_i
+            else:
+                beta = min(beta, score_i)
+        return score_i
+
+    def max_value(self, game, move, depth, alpha, beta):
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        game_tmp = game.forecast_move(move)
+
+        legal_moves = game_tmp.get_legal_moves()
+        score_i = float("-inf")
+
+        if depth == 0:
+            return self.score(game_tmp, self) #PA passed
+        #return self.score(game_tmp, game_tmp._player_2)
+
+        for p in legal_moves:
+            score_i = max(score_i, self.min_value(game_tmp, p, depth-1, alpha, beta))
+            if score_i >= beta:
+                return score_i
+            else:
+                alpha = max(alpha, score_i)
+        return score_i
+        
