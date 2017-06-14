@@ -468,28 +468,12 @@ class AlphaBetaPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            #return self.alphabeta(game, self.search_depth)
-            #value, move = self.alphabeta(game, self.search_depth)
 
             search_depth = 1
             while True:
                 result = self.alphabeta(game, search_depth)
                 best_move = result
                 search_depth += 1
-
-            # search_depth = self.search_depth
-            # for i in range(1000):
-            #     value, move = self.alphabeta(game, search_depth)
-            #     if value == float("inf") or value == float("-inf"):
-            #         return move
-            #     search_depth += 1
-
-            # search_depth = self.search_depth
-            # for i in range(1000):
-            #     result = self.alphabeta(game, search_depth)
-            #     if self.time_left() < self.TIMER_THRESHOLD:
-            #         return result
-            #     search_depth += 1
 
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
@@ -547,11 +531,28 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         move = (-1, -1)
         legal_moves = game.get_legal_moves()
+
         if len(legal_moves) == 0:
             return move
-        #because move by first player is a maximizing
-        value, move = max((self.min_value(game, p, depth-1, alpha, beta), p) for p in legal_moves)
+
+        best_value = float("-inf")
+        for p in legal_moves:
+            score = self.min_value(game, p, depth-1, alpha, beta)
+            if score > best_value:
+                best_value = score
+                move = p
+            #also you need to update alpha
+            alpha = max(alpha, score)
+
         return move
+
+        # move = (-1, -1)
+        # legal_moves = game.get_legal_moves()
+        # if len(legal_moves) == 0:
+        #     return move
+        # #because move by first player is a maximizing
+        # value, move = max((self.min_value(game, p, depth-1, alpha, beta), p) for p in legal_moves)
+        # return move
 
     def min_value(self, game, move, depth, alpha, beta):
         if self.time_left() < self.TIMER_THRESHOLD:
