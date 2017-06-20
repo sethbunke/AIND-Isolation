@@ -3,6 +3,7 @@ test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
 import random
+from random import randint
 
 
 class SearchTimeout(Exception):
@@ -34,13 +35,40 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """    
-    if game.is_loser(player):
-        return float("-inf")
+    # if game.is_loser(player):
+    #     return float("-inf")
 
-    if game.is_winner(player):
-        return float("inf")
+    # if game.is_winner(player):
+    #     return float("inf")
 
-    return float(len(game.get_legal_moves(player)))
+    # return float(len(game.get_legal_moves(player)))
+
+    col_row_indexes = [0, game.width - 1]
+
+    no_reflect = []
+
+    index = 1
+    while index < game.width:
+        #print(index)
+        for inner_index in col_row_indexes:
+            no_reflect.append((index, inner_index))
+            no_reflect.append((inner_index, index))
+        index += 2
+
+    player_intersect = list(set(no_reflect) & set(game.get_legal_moves(player)))
+    opponent_intersect = list(set(no_reflect) & set(game.get_legal_moves(game.get_opponent(player))))
+    return float(len(player_intersect) - len(opponent_intersect))
+
+    # #RATIO
+    # open_spaces = len(game.get_blank_spaces())
+
+    # player_moves = len(game.get_legal_moves(player))
+    # opponent_moves = len(game.get_legal_moves(game.get_opponent(player)))
+
+    # player_ratio = float(player_moves/open_spaces)
+    # opponent_ratio = float(opponent_moves/open_spaces)
+
+    # return player_ratio - opponent_ratio
 
 
 def custom_score_2(game, player):
@@ -65,10 +93,17 @@ def custom_score_2(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    player_moves = len(game.get_legal_moves(player))
-    opponent_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    # player_moves = len(game.get_legal_moves(player))
+    # opponent_moves = len(game.get_legal_moves(game.get_opponent(player)))
 
-    return float(player_moves - opponent_moves)
+    # return float(player_moves - opponent_moves)
+    if game.is_winner(player) or game.is_loser(player):
+        return game.utility(player)
+
+    player_moves = game.get_legal_moves()
+    #opponent_moves = game.get_legal_moves(game.inactive_player)
+    open_spaces = game.get_blank_spaces()
+    return float (len(player_moves) - (len (open_spaces)/2))
 
 
 def custom_score_3(game, player):
@@ -94,10 +129,44 @@ def custom_score_3(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    player_moves = len(game.get_legal_moves(player))
-    opponent_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    # player_moves = len(game.get_legal_moves(player))
+    # opponent_moves = len(game.get_legal_moves(game.get_opponent(player)))
 
-    return float(player_moves - (2 * opponent_moves))
+    # return float(player_moves - (2 * opponent_moves))
+
+    # player_moves = len(game.get_legal_moves(player))
+    # opponent_moves = len(game.get_legal_moves(game.get_opponent(player)))
+
+    # if player_moves == opponent_moves:
+    #     return float("inf")
+
+    # return float(player_moves - (2 * opponent_moves))
+    center = int((game.width / 2) + 0.5)
+    center_tuple = (center, center)
+
+    legal_moves = game.get_legal_moves(player)
+
+    result = [pos for pos in legal_moves if pos[0] == center_tuple[0] and pos[1] == center_tuple[1]]
+
+    weight = 1
+
+    if len(result) > 0:
+        weight = 10
+
+    col_row_indexes = [0, game.width - 1]
+
+    no_reflect = []
+
+    index = 1
+    while index < game.width:
+        for inner_index in col_row_indexes:
+            no_reflect.append((index, inner_index))
+            no_reflect.append((inner_index, index))
+        index += 2
+
+    player_intersect = list(set(no_reflect) & set(game.get_legal_moves(player)))
+    opponent_intersect = list(set(no_reflect) & set(game.get_legal_moves(game.get_opponent(player))))
+    return float(len(player_intersect) * weight) - len(opponent_intersect)
 
 
 
@@ -278,7 +347,15 @@ class AlphaBetaPlayer(IsolationPlayer):
                 search_depth += 1
 
         except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
+            pass
+            # Handle any actions required after timeout as needed
+
+        legal_moves = game.get_legal_moves()
+        legal_moves_length = len(legal_moves)
+
+        #See if there is at least some move that we can make
+        if (best_move == (-1, -1)) and (legal_moves_length > 0):
+            best_move = legal_moves[randint(0, legal_moves_length - 1)]
 
         # Return the best move from the last completed search iteration
         return best_move
