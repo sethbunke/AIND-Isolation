@@ -43,8 +43,8 @@ def custom_score(game, player):
 
     # return float(len(game.get_legal_moves(player)))
 
+    #Compare number of "no reflect positions" of agent and opponent
     col_row_indexes = [0, game.width - 1]
-
     no_reflect = []
 
     index = 1
@@ -97,14 +97,38 @@ def custom_score_2(game, player):
     # opponent_moves = len(game.get_legal_moves(game.get_opponent(player)))
 
     # return float(player_moves - opponent_moves)
-    if game.is_winner(player) or game.is_loser(player):
-        return game.utility(player)
+    # if game.is_winner(player) or game.is_loser(player):
+    #     return game.utility(player)
 
-    player_moves = game.get_legal_moves()
-    #opponent_moves = game.get_legal_moves(game.inactive_player)
-    open_spaces = game.get_blank_spaces()
-    return float (len(player_moves) - (len (open_spaces)/2))
+    # player_moves = game.get_legal_moves()
+    # #opponent_moves = game.get_legal_moves(game.inactive_player)
+    # open_spaces = game.get_blank_spaces()
+    # return float (len(player_moves) - (len (open_spaces)/2))
 
+    #Determine if agent or opponent has the center position in their list of legam moves
+    center = int((game.width / 2) + 0.5)
+    center_tuple = (center, center)
+
+    #Calculate for player
+    player_legal_moves = game.get_legal_moves(player)
+    player_result = [pos for pos in player_legal_moves if pos[0] == center_tuple[0] and pos[1] == center_tuple[1]]
+    player_weight = 1
+
+    if len(player_result) > 0:
+        player_weight = 10
+
+    #Calculate for opponent
+    opponent_legal_moves = game.get_legal_moves(game.get_opponent(player))
+    opponent_result = [pos for pos in opponent_legal_moves if pos[0] == center_tuple[0] and pos[1] == center_tuple[1]]
+    opponent_weight = 1
+
+    if len(opponent_result) > 0:
+        opponent_weight = -10
+
+    player_value = len(player_legal_moves) * player_weight
+    opponent_value = len(opponent_legal_moves) * opponent_weight
+
+    return float(player_value - opponent_value)
 
 def custom_score_3(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -141,17 +165,27 @@ def custom_score_3(game, player):
     #     return float("inf")
 
     # return float(player_moves - (2 * opponent_moves))
+
+    #Look at the intersection of legal moves for the players and "no reflect" positions
+    #Additionally, add additional weight if that player's moves contains the center
     center = int((game.width / 2) + 0.5)
     center_tuple = (center, center)
 
-    legal_moves = game.get_legal_moves(player)
+    #Calculate for player
+    player_legal_moves = game.get_legal_moves(player)
+    player_result = [pos for pos in player_legal_moves if pos[0] == center_tuple[0] and pos[1] == center_tuple[1]]
+    player_weight = 1
 
-    result = [pos for pos in legal_moves if pos[0] == center_tuple[0] and pos[1] == center_tuple[1]]
+    if len(player_result) > 0:
+        player_weight = 10
 
-    weight = 1
+    #Calculate for opponent
+    opponent_legal_moves = game.get_legal_moves(game.get_opponent(player))
+    opponent_result = [pos for pos in opponent_legal_moves if pos[0] == center_tuple[0] and pos[1] == center_tuple[1]]
+    opponent_weight = 1
 
-    if len(result) > 0:
-        weight = 10
+    if len(opponent_result) > 0:
+        opponent_weight = -10
 
     col_row_indexes = [0, game.width - 1]
 
@@ -164,11 +198,13 @@ def custom_score_3(game, player):
             no_reflect.append((inner_index, index))
         index += 2
 
-    player_intersect = list(set(no_reflect) & set(game.get_legal_moves(player)))
-    opponent_intersect = list(set(no_reflect) & set(game.get_legal_moves(game.get_opponent(player))))
-    return float(len(player_intersect) * weight) - len(opponent_intersect)
+    player_intersect = list(set(no_reflect) & set(player_legal_moves))
+    opponent_intersect = list(set(no_reflect) & set(opponent_legal_moves))
 
+    player_value = len(player_intersect) * player_weight
+    opponent_value = len(opponent_intersect) * opponent_weight
 
+    return float(player_value - opponent_value)
 
 class IsolationPlayer:
     """Base class for minimax and alphabeta agents -- this class is never
